@@ -1,3 +1,16 @@
 'use strict';
 
-//TODO: Implement the exercise requirements in this file and remove this comment
+
+function printReceipt(){
+return 'asdsadagfdhfgdh';
+};
+
+function decodeBarcodes(tags){
+    let uniqueBarcodes = [...new Set(tags.map(barCode => barCode))];
+    console.log('uniqueBarcodes: ' + uniqueBarcodes);
+};
+
+module.exports = {
+    decodeBarcodes : decodeBarcodes
+
+}
