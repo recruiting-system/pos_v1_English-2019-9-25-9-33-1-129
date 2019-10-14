@@ -2,8 +2,22 @@
 const constantFunc = require('../test/fixtures');
 
 function printReceipt(){
-return ;
+    
+return null ;
 };
+
+function renderReceipt(receipt){
+    let renderedReceipt = '***<store earning no money>Receipt ***';
+    receipt.receiptItems.forEach(item => {
+        renderedReceipt += 'Name：'+ item.name +'，Quantity：' + item.count + ' ' + item.unit + '，Unit：' + item.price.toFixed(2) + '(yuan)，Subtotal：' + item.subTotal + '(yuan)\n';
+    });
+    renderReceipt += '----------------------\n' 
+                + 'Total：' + receipt.total.toFixed(2) +' (yuan)\n'
+                + 'Discounted prices：' + receipt.savings.toFixed(2) + ' (yuan)\n'
+                + '**********************';
+    console.log(renderReceipt);
+    return renderReceipt;
+}
 
 function decodeTags(tags){
     return combinedItems(decodeBarcodes(tags));
@@ -90,5 +104,6 @@ module.exports = {
     calculateReceiptItems:calculateReceiptItems,
     calculateReceiptTotal:calculateReceiptTotal,
     calculateReceiptSavings:calculateReceiptSavings,
-    calculateReceipt:calculateReceipt
+    calculateReceipt:calculateReceipt,
+    renderReceipt:renderReceipt
 }
