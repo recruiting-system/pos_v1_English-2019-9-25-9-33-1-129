@@ -1,22 +1,21 @@
 'use strict';
-const constantFunc = require('../test/fixtures');
 
-function printReceipt(){
-    
-return null ;
+function printReceipt(tags){
+    let items = decodeTags(tags);
+    let receipt = calculateReceipt(items);
+    console.log(renderReceipt(receipt));
 };
 
 function renderReceipt(receipt){
-    let renderedReceipt = '***<store earning no money>Receipt ***';
-    receipt.receiptItems.forEach(item => {
-        renderedReceipt += 'Name：'+ item.name +'，Quantity：' + item.count + ' ' + item.unit + '，Unit：' + item.price.toFixed(2) + '(yuan)，Subtotal：' + item.subTotal + '(yuan)\n';
+    let renderedReceipt = '***<store earning no money>Receipt ***\n';
+    receipt[0].receiptItems.forEach(item => {
+        renderedReceipt += 'Name：'+ item.name +'，Quantity：' + item.count + ' ' + item.unit + '，Unit：' + item.price.toFixed(2) + '(yuan)，Subtotal：' + item.subTotal.toFixed(2) + '(yuan)\n';
     });
-    renderReceipt += '----------------------\n' 
-                + 'Total：' + receipt.total.toFixed(2) +' (yuan)\n'
-                + 'Discounted prices：' + receipt.savings.toFixed(2) + ' (yuan)\n'
+    renderedReceipt += '----------------------\n' 
+                + 'Total：' + receipt[0].total.toFixed(2) +'(yuan)\n'
+                + 'Discounted prices：' + receipt[0].savings.toFixed(2) + '(yuan)\n'
                 + '**********************';
-    console.log(renderReceipt);
-    return renderReceipt;
+    return renderedReceipt;
 }
 
 function decodeTags(tags){
@@ -27,6 +26,9 @@ function combinedItems(decodeBarcodes){
     let itemInfo = loadItems(decodeBarcodes);
     return decodeBarcodes.map(barcode => {
         let item = itemInfo.filter(item => item.barcode === barcode.barcode)[0];
+        if(barcode.count > 1){
+            item.unit += 's';
+        }
         item.count = barcode.count;
         return item;
     });
@@ -34,26 +36,38 @@ function combinedItems(decodeBarcodes){
 
 function loadItems(decodeBarcodes){
     return decodeBarcodes.map(barcode => 
-        constantFunc.loadAllItems().filter(items=> items.barcode === barcode.barcode)[0]
+        loadAllItems().filter(items=> items.barcode === barcode.barcode)[0]
     );
 }
 
 function decodeBarcodes(tags){
-    let uniqueBarcodes = [...new Set(tags)].map(value => {
-        let barcode = value.split('-', 2);
-        if(barcode.length === 1){
-            return {
-                barcode: barcode[0],
-                count: tags.filter(occurence => occurence == barcode).length
+    let realTags = tags.map(value => value.split('-', 1)[0]);
+    let uniqueBarcodes = [...new Set(realTags)].map(value => {
+        let count = tags.map(tag => {
+            let decodeTag = tag.split('-', 2);
+            if(value === decodeTag[0]){
+                if(decodeTag[1] !== undefined && isFloat(parseFloat(decodeTag[1]))){
+                    return parseFloat(decodeTag[1]);
+                }
+                else if(decodeTag[1] !== undefined && !isFloat(parseFloat(decodeTag[1]))){
+                    return parseInt(decodeTag[1]);
+                }
+                return 1;
             }
-        }
+            return 0;
+        }).reduce((prev, next) => prev + next);
+
         return {
-            barcode: barcode[0],
-            count: parseInt(tags.filter(occurence => occurence == barcode).length) + parseInt(barcode[1])
-        }
-    
+                barcode: value,
+                count: count
+            }
     });
     return uniqueBarcodes;
+    // return null;
+}
+
+function isFloat(number){
+    return Number(number) === number && number % 1 !== 0;
 }
 
 function calculateReceipt(items){
@@ -78,7 +92,7 @@ function calculateReceiptItems(items){
 }
 
 function loadAllPromotion(){
-    return constantFunc.loadPromotions()
+    return loadPromotions()
 }
 
 function promoteReceiptItems(items, promotions){
@@ -105,5 +119,6 @@ module.exports = {
     calculateReceiptTotal:calculateReceiptTotal,
     calculateReceiptSavings:calculateReceiptSavings,
     calculateReceipt:calculateReceipt,
-    renderReceipt:renderReceipt
+    renderReceipt:renderReceipt,
+    printReceipt:printReceipt
 }
