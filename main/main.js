@@ -63,7 +63,6 @@ function decodeBarcodes(tags){
             }
     });
     return uniqueBarcodes;
-    // return null;
 }
 
 function isFloat(number){
